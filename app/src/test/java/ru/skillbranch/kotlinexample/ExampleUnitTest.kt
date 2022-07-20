@@ -3,6 +3,7 @@ package ru.skillbranch.kotlinexample
 import org.junit.After
 import org.junit.Assert
 import org.junit.Test
+import ru.skillbranch.kotlinexample.extensions.dropLastUntil
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -183,5 +184,35 @@ class ExampleUnitTest {
 
         Assert.assertNotEquals(oldAccess, user.accessCode!!)
         Assert.assertEquals(expectedInfo, successResult)
+    }
+
+    @Test
+    fun import_user() {
+        val holder = UserHolder
+        val csvText =  " John Doe ;JohnDoe@unknow.com;[B@7591083d:2043f55463aacdaa3ed3fa623a242034;;"
+        holder.importUser(listOf(csvText))
+
+        val expectedInfo = """
+            firstName: John
+            lastName: Doe
+            login: johndoe@unknow.com
+            fullName: John Doe
+            initials: J D
+            email: JohnDoe@unknow.com
+            phone: null
+            meta: {src=csv}
+        """.trimIndent()
+        val successResult =  holder.loginUser("JohnDoe@unknow.com", "123")
+
+        Assert.assertEquals(expectedInfo, successResult)
+    }
+
+    @Test
+    fun drop_last_until() {
+        val dropLastUntil = listOf(1, 2, 3).dropLastUntil { it == 2 }
+        Assert.assertEquals(listOf(1), dropLastUntil)
+        val test1 = "House Nymeros Martell of Sunspear".split(" ")
+            .dropLastUntil { it == "of" }
+        Assert.assertEquals(listOf("House", "Nymeros", "Martell"), test1)
     }
 }

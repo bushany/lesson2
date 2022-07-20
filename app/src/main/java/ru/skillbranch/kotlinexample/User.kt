@@ -10,6 +10,7 @@ import java.security.SecureRandom
 class User private constructor(
     private val firstName: String,
     private val lastName: String?,
+    saltE: String? = null,
     email: String? = null,
     rawPhone: String? = null,
     meta: Map<String, Any>? = null,
@@ -36,12 +37,12 @@ class User private constructor(
         get() = _login!!
 
     private val salt: String by lazy {
-        ByteArray(16).also { SecureRandom().nextBytes(it) }.toString()
+        saltE ?: ByteArray(16).also { SecureRandom().nextBytes(it) }.toString()
     }
 
     private lateinit var passwordHash: String
 
-    // @VisibleForTesting(otherwise = VisibleForTesting.NONE)
+    @VisibleForTesting(otherwise = VisibleForTesting.NONE)
     var accessCode: String? = null
 
     //for email
@@ -68,19 +69,24 @@ class User private constructor(
         sendAccessCodeToUser(rawPhone, code)
     }
 
-//    //for csv
-//    constructor(
-//        firstName: String,
-//        lastName: String?,
-//        email: String?,
-//        saltE: String?,
-//        passwordHash: String?,
-//        rawPhone: String?,
-//    ) : this(firstName, lastName, rawPhone = rawPhone, meta = mapOf("src" to "csv")) {
-//        if (salt != null) {
-//            this.salt = saltE
-//        }
-//    }
+    //for csv
+    constructor(
+        firstName: String,
+        lastName: String?,
+        email: String?,
+        salt: String?,
+        passwordHash: String?,
+        rawPhone: String?,
+    ) : this(firstName,
+        lastName,
+        email = email,
+        saltE = salt,
+        rawPhone = rawPhone,
+        meta = mapOf("src" to "csv")) {
+        if (!salt.isNullOrBlank() && passwordHash != null) {
+            this.passwordHash = passwordHash
+        }
+    }
 
     init {
         println("First init block, primary constructor were called")
@@ -146,6 +152,12 @@ class User private constructor(
         ): User {
             val (firstName, lastName) = fullName.fullNameToPair()
             return when {
+                !password.isNullOrBlank() && !salt.isNullOrBlank() -> User(firstName,
+                    lastName,
+                    email,
+                    salt,
+                    password,
+                    phone)
                 !phone.isNullOrBlank() -> User(firstName, lastName, phone)
                 !email.isNullOrBlank() && !password.isNullOrBlank() -> User(firstName,
                     lastName,
