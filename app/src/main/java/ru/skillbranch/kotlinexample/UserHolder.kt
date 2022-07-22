@@ -59,7 +59,7 @@ object UserHolder {
         return replace("[^\\d\\+]".toRegex(), "")
     }
 
-    fun importUser(list: List<String>): List<User> {
+    fun importUsers(list: List<String>): List<User> {
         var usersList = mutableListOf<User>()
 
         for (item in list) {
